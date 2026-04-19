@@ -1,6 +1,6 @@
 # AI Content Agent
 
-A floating AI writing assistant for Windows. Select text, press a global hotkey, and a desktop widget appears that uses an LLM to rewrite, check grammar, translate, or generate the next line of your content natively.
+A floating AI writing assistant for Windows. Select text, press a global hotkey, and a desktop widget appears that uses an LLM to rewrite, check grammar, translate, or generate the next line of your content.
 
 ## Features
 - **Global Hotkeys:** Works globally anywhere across the OS.
