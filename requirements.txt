@@ -1,0 +1,9 @@
+pyperclip
+Flask
+flask-cors
+pywebview
+google-genai
+pydantic
+python-dotenv
+keyboard
+pyinstaller

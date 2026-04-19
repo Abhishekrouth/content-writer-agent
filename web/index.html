@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Agent</title>
+    <style>
+        :root {
+            --bg-base: #0a0a0c;
+            --bg-panel: rgba(255, 255, 255, 0.03);
+            --bg-panel-hover: rgba(255, 255, 255, 0.06);
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.4);
+            --secondary: #c084fc;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 16px;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 24px;
+            overflow: hidden; 
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(129, 140, 248, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(192, 132, 252, 0.06) 0%, transparent 50%);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            -webkit-app-region: drag; 
+            cursor: move;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+            -webkit-app-region: no-drag;
+        }
+
+        .close-btn:hover {
+            color: white;
+            background: var(--bg-panel-hover);
+            transform: scale(1.05);
+        }
+
+        .context-area {
+            background-color: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 24px -4px rgba(0,0,0,0.5);
+            -webkit-app-region: no-drag;
+        }
+
+        .context-area label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .context-area label::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+
+        textarea::placeholder {
+            color: rgba(148, 163, 184, 0.4);
+        }
+
+        textarea::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-app-region: no-drag;
+        }
+
+        .controls::-webkit-scrollbar {
+            display: none;
+        }
+
+        button.action-tab {
+            background: var(--bg-panel);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        button.action-tab:hover {
+            background: var(--bg-panel-hover);
+            color: var(--text-main);
+        }
+
+        button.action-tab.active {
+            background: rgba(129, 140, 248, 0.1);
+            border-color: rgba(129, 140, 248, 0.3);
+            color: var(--primary);
+            box-shadow: inset 0 0 12px rgba(129, 140, 248, 0.05);
+        }
+        
+        .mode-selector {
+            display: none;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px;
+            gap: 4px;
+            margin-bottom: 24px;
+            -webkit-app-region: no-drag;
+            justify-content: space-between;
+        }
+
+        .mode-selector.show {
+            display: flex;
+        }
+        
+        .mode-badge, .lang-badge {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .mode-badge:hover, .lang-badge:hover {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .mode-badge.selected, .lang-badge.selected {
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: auto;
+            -webkit-app-region: no-drag;
+        }
+
+        .btn {
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            flex: 1;
+            box-shadow: 0 4px 20px rgba(129, 140, 248, 0.3);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 24px rgba(129, 140, 248, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-panel-hover);
+        }
+
+        .status {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 16px;
+            min-height: 15px;
+            font-weight: 500;
+        }
+
+        .loader {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Content Agent ✨</h2>
+        <button class="close-btn" onclick="hideWindow()">✕</button>
+    </div>
+
+    <div class="context-area">
+        <label id="context-label">Text Context</label>
+        <textarea id="text-input" placeholder="Select text and press Ctrl+Alt+W..." spellcheck="false"></textarea>
+    </div>
+
+    <div class="controls">
+        <button class="action-tab" onclick="selectTab('grammar-check', this)">Grammar</button>
+        <button class="action-tab" onclick="selectTab('alternative', this)">Rewrite</button>
+        <button class="action-tab" onclick="selectTab('translate', this)">Translate</button>
+        <button class="action-tab" onclick="selectTab('generate-new-line', this)">AI Continue</button>
+    </div>
+
+    <div id="mode-selector" class="mode-selector">
+        <div class="mode-badge selected" onclick="selectMode('Copywriting', this)">Copywriting</div>
+        <div class="mode-badge" onclick="selectMode('Social', this)">Social</div>
+        <div class="mode-badge" onclick="selectMode('Blog', this)">Blog</div>
+        <div class="mode-badge" onclick="selectMode('Technical', this)">Technical</div>
+    </div>
+
+    <div id="lang-selector" class="mode-selector">
+        <div class="lang-badge selected" onclick="selectLang('English', this)">English</div>
+        <div class="lang-badge" onclick="selectLang('Spanish', this)">Spanish</div>
+        <div class="lang-badge" onclick="selectLang('French', this)">French</div>
+        <div class="lang-badge" onclick="selectLang('Hindi', this)">Hindi</div>
+    </div>
+
+    <div class="actions" id="process-actions">
+        <button id="btn-process" class="btn btn-primary" onclick="processText()">
+            <span class="loader" id="loader"></span>
+            <span id="btn-text">Generate Intelligence</span>
+        </button>
+    </div>
+    
+    <div class="actions" style="display: none;" id="result-actions">
+        <button class="btn btn-secondary" onclick="copyResult()">Copy Text</button>
+        <button class="btn btn-primary" onclick="replaceResult()">Insert & Close</button>
+    </div>
+
+    <div class="status" id="status-text">Ready.</div>
+
+    <script>
+        let currentTab = 'generate-new-line';
+        let currentMode = 'Copywriting';
+        let currentLang = 'English';
+        let isProcessing = false;
+
+        window.addEventListener('pywebviewready', function() {
+            fetchState();
+        });
+
+        function updateContext(text) {
+            document.getElementById('text-input').value = text;
+            setStatus("Text captured from clipboard.");
+            resetUI();
+        }
+
+        function resetUI() {
+           document.getElementById('result-actions').style.display = 'none';
+           document.getElementById('process-actions').style.display = 'flex';
+           document.getElementById('context-label').innerText = "Text Context";
+        }
+
+        async function fetchState() {
+            if(window.pywebview) {
+               try {
+                   let state = await window.pywebview.api.get_current_state();
+                   if(state && state.context) {
+                       document.getElementById('text-input').value = state.context;
+                   } else if(state && state.text) {
+                       document.getElementById('text-input').value = state.text;
+                   }
+               } catch(e) {}
+            }
+        }
+
+        function selectTab(tab, element) {
+            document.querySelectorAll('.action-tab').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            currentTab = tab;
+            
+            const modeSelector = document.getElementById('mode-selector');
+            const langSelector = document.getElementById('lang-selector');
+            if (tab === 'generate-new-line') {
+                modeSelector.classList.add('show');
+                langSelector.classList.remove('show');
+            } else if (tab === 'translate') {
+                modeSelector.classList.remove('show');
+                langSelector.classList.add('show');
+            } else {
+                modeSelector.classList.remove('show');
+                langSelector.classList.remove('show');
+            }
+            
+            resetUI();
+        }
+
+        function selectMode(mode, element) {
+            document.querySelectorAll('.mode-badge').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            currentMode = mode;
+            if(window.pywebview) {
+                window.pywebview.api.set_mode(mode);
+            }
+        }
+
+        function selectLang(lang, element) {
+            document.querySelectorAll('.lang-badge').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            currentLang = lang;
+        }
+
+        function setStatus(msg) {
+            document.getElementById('status-text').innerText = msg;
+            setTimeout(() => {
+                if(document.getElementById('status-text').innerText === msg && !isProcessing) {
+                    document.getElementById('status-text').innerText = "Ready.";
+                }
+            }, 3000);
+        }
+
+        function hideWindow() {
+            if(window.pywebview) {
+                window.pywebview.api.hide_window();
+            }
+        }
+
+        async function processText() {
+            if (isProcessing) return;
+            
+            const textValue = document.getElementById('text-input').value;
+            if (!textValue.trim()) {
+                setStatus("Please enter or select some text first.");
+                return;
+            }
+
+            isProcessing = true;
+            document.getElementById('loader').style.display = 'inline-block';
+            document.getElementById('btn-text').innerText = 'Processing...';
+            setStatus(`Running AI engine...`);
+
+            const payload = {
+                text: "",
+                context: textValue,
+                language: currentLang,
+                mode: currentMode
+            };
+
+            try {
+                const response = await fetch(`http://127.0.0.1:3000/api/${currentTab}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (data.result) {
+                    document.getElementById('text-input').value = data.result;
+                    setStatus("AI Generation completed!");
+                    document.getElementById('context-label').innerText = "AI Result";
+                    
+                    document.getElementById('process-actions').style.display = 'none';
+                    document.getElementById('result-actions').style.display = 'flex';
+                } else if (data.error) {
+                    setStatus("Error: " + data.error);
+                }
+            } catch (err) {
+                setStatus("Failed to connect to background engine.");
+                console.error(err);
+            } finally {
+                isProcessing = false;
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('btn-text').innerText = 'Generate Intelligence';
+            }
+        }
+
+        function copyResult() {
+            const result = document.getElementById('text-input').value;
+            if(window.pywebview) {
+                window.pywebview.api.copy_text(result);
+                setStatus("Copied to clipboard!");
+            } else {
+                navigator.clipboard.writeText(result);
+                setStatus("Copied to clipboard!");
+            }
+        }
+
+        function replaceResult() {
+            const result = document.getElementById('text-input').value;
+             if(window.pywebview) {
+                if(currentTab === 'generate-new-line') {
+                    window.pywebview.api.replace_text_next_line(result);
+                } else {
+                    window.pywebview.api.replace_text(result);
+                }
+            }
+        }
+        
+        document.querySelector('.action-tab:last-child').classList.add('active');
+        document.getElementById('mode-selector').classList.add('show');
+    </script>
+</body>
+</html>
