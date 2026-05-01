@@ -10,6 +10,7 @@ import os
 import ctypes
 import json
 from processor import Processor
+from routes import GENERATE_NEW_LINE_API, GRAMMAR_CHECK_API, ALTERNATIVE_API, TRANSLATING_API
 
 app = Flask(__name__)
 CORS(app)
@@ -24,7 +25,7 @@ def get_selected_text():
     return text
 
 
-@app.route("/api/grammar-check", methods=["POST"])
+@app.route(GRAMMAR_CHECK_API, methods=["POST"])
 def grammar():
     
     if not global_app_instance: return jsonify({"error": "App not ready"}), 500
@@ -45,7 +46,7 @@ def grammar():
         global_app_instance.is_generating = False
 
 
-@app.route("/api/alternative", methods=["POST"])
+@app.route(ALTERNATIVE_API, methods=["POST"])
 def alternative():
 
     data = request.json
@@ -63,7 +64,7 @@ def alternative():
     finally:
         global_app_instance.is_generating = False
 
-@app.route("/api/translate", methods=["POST"])
+@app.route(TRANSLATING_API, methods=["POST"])
 def translate():
     
     if not global_app_instance: return jsonify({"error": "App not ready"}), 500
@@ -84,7 +85,7 @@ def translate():
         global_app_instance.is_generating = False
 
 
-@app.route("/api/generate-new-line", methods=["POST"])
+@app.route(GENERATE_NEW_LINE_API, methods=["POST"])
 def generate_new_line():
 
     data = request.json
